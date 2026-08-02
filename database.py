@@ -387,38 +387,37 @@ class Database:
         conn.commit()
         conn.close()
 
-def get_history(self, user_id, limit=20):
+    def get_history(self, user_id, limit=20):
 
-    conn = self.connect()
-    cursor = conn.cursor()
+        conn = self.connect()
+        cursor = conn.cursor()
 
-    cursor.execute("""
-    SELECT role, message
-    FROM history
-    WHERE user_id=?
-    ORDER BY id DESC
-    LIMIT ?
-    """, (user_id, limit))
+        cursor.execute("""
+        SELECT role, message
+        FROM history
+        WHERE user_id=?
+        ORDER BY id DESC
+        LIMIT ?
+        """, (user_id, limit))
 
-    rows = cursor.fetchall()
+        rows = cursor.fetchall()
 
-    conn.close()
+        conn.close()
 
-    return [(row["role"], row["message"]) for row in rows[::-1]]
+        return [(row["role"], row["message"]) for row in rows[::-1]]
 
+    def clear_history(self, user_id):
 
-def clear_history(self, user_id):
+        conn = self.connect()
+        cursor = conn.cursor()
 
-    conn = self.connect()
-    cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM history WHERE user_id=?",
+            (user_id,)
+        )
 
-    cursor.execute(
-        "DELETE FROM history WHERE user_id=?",
-        (user_id,)
-    )
-
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
     # =====================
     # REFERRAL
@@ -441,7 +440,6 @@ def clear_history(self, user_id):
     def get_user_by_referral_code(self, code):
 
         conn = self.connect()
-        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -570,14 +568,14 @@ def clear_history(self, user_id):
         conn.close()
 
         return row[0] if row and row[0] else 0
-          # ==========================
+
+    # ==========================
     # SETTINGS
     # ==========================
 
     def get_settings(self, user_id):
 
         conn = self.connect()
-        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -664,7 +662,6 @@ def clear_history(self, user_id):
     def get_all_users(self):
 
         conn = self.connect()
-        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         cursor.execute("""
