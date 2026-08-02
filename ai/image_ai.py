@@ -1,53 +1,64 @@
-from typing import Dict, Any
-
+from openai import AsyncOpenAI
 from config import Config
 from logger.logger import logger
 
 
-class ImageAIHandler:
+class ImageAI:
 
     def __init__(self):
-        self.openai_key = Config.OPENAI_API_KEY
-        self.gemini_key = Config.GEMINI_API_KEY
 
-    async def generate(
+        self.api_key = Config.OPENAI_API_KEY
+
+        if self.api_key:
+
+            self.client = AsyncOpenAI(
+                api_key=self.api_key
+            )
+
+        else:
+
+            self.client = None
+
+            logger.warning(
+                "OpenAI API key not found"
+            )
+
+    async def generate_image(
         self,
         prompt: str,
-        provider: str = "openai"
-    ) -> Dict[str, Any]:
+        size: str = "1024x1024"
+    ):
+
+        if not self.client:
+
+            return {
+                "error": "OpenAI API key not configured"
+            }
 
         try:
 
-            if provider == "openai":
+            response = await self.client.images.generate(
 
-                if not self.openai_key:
-                    return {
-                        "error": "OpenAI API key not configured"
-                    }
+                model="gpt-image-1",
 
-                return {
-                    "error": "OpenAI image generation will be added in next update."
-                }
+                prompt=prompt,
 
-            elif provider == "gemini":
+                size=size
 
-                if not self.gemini_key:
-                    return {
-                        "error": "Gemini API key not configured"
-                    }
-
-                return {
-                    "error": "Gemini image generation will be added in next update."
-                }
+            )
 
             return {
-                "error": "Unknown provider"
+
+                "url": response.data[0].url
+
             }
 
         except Exception as e:
 
-            logger.exception(e)
+            logger.error(f"Image Error: {e}")
 
             return {
+
                 "error": str(e)
+
             }
