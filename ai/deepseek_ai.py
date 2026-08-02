@@ -1,5 +1,8 @@
+import asyncio
+from typing import Dict, Any, List
+
 from openai import AsyncOpenAI
-from typing import List, Dict, Any
+
 from config import Config
 from logger.logger import logger
 
@@ -12,16 +15,17 @@ class DeepSeekHandler:
         if self.api_key:
             self.client = AsyncOpenAI(
                 api_key=self.api_key,
-                base_url="https://api.deepseek.com"
+                base_url="https://api.deepseek.com/v1"
             )
+            self.model = "deepseek-chat"
+            logger.info("DeepSeek handler initialized successfully")
         else:
             self.client = None
-            logger.warning("DeepSeek API key not found")
+            logger.warning("DeepSeek API key not configured")
 
     async def chat(
         self,
-        messages: List[Dict[str, str]],
-        model: str = "deepseek-chat"
+        messages: List[Dict[str, str]]
     ) -> Dict[str, Any]:
 
         if not self.client:
@@ -30,21 +34,18 @@ class DeepSeekHandler:
             }
 
         try:
-
             response = await self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0.7
+                model=self.model,
+                messages=messages
             )
 
             return {
-                "content": response.choices[0].message.content
+                "content": response.choices[0].message.content,
+                "model": self.model
             }
 
         except Exception as e:
-
-            logger.error(f"DeepSeek Error: {e}")
-
+            logger.exception(f"DeepSeek API error: {e}")
             return {
                 "error": str(e)
             }
