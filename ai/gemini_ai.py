@@ -1,8 +1,7 @@
 import asyncio
 from typing import Dict, Any, List
 
-# পুরনো: import google.generativeai as genai
-# নতুন: google.genai ব্যবহার করুন
+# নতুন SDK ব্যবহার করুন
 from google import genai
 
 from config import Config
@@ -17,7 +16,7 @@ class GeminiHandler:
         if self.api_key:
             # নতুন ক্লায়েন্ট ইনিশিয়ালাইজ
             self.client = genai.Client(api_key=self.api_key)
-            self.model_name = "gemini-2.0-flash-exp"  # অথবা gemini-1.5-pro
+            self.model_name = "gemini-2.0-flash-exp"
             logger.info("Gemini handler initialized successfully")
         else:
             self.client = None
@@ -39,7 +38,6 @@ class GeminiHandler:
             prompt = self._format_messages(messages)
 
             # নতুন API ব্যবহার করে কনটেন্ট জেনারেট
-            # asyncio.to_thread ব্যবহার করে নন-ব্লকিং কল
             response = await asyncio.to_thread(
                 self.client.models.generate_content,
                 model=self.model_name,
