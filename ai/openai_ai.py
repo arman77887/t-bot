@@ -1,5 +1,8 @@
+import asyncio
+from typing import Dict, Any, List
+
 from openai import AsyncOpenAI
-from typing import List, Dict, Any
+
 from config import Config
 from logger.logger import logger
 
@@ -11,14 +14,15 @@ class OpenAIHandler:
 
         if self.api_key:
             self.client = AsyncOpenAI(api_key=self.api_key)
+            self.model = "gpt-4o-mini"
+            logger.info("OpenAI handler initialized successfully")
         else:
             self.client = None
-            logger.warning("OpenAI API key not found")
+            logger.warning("OpenAI API key not configured")
 
     async def chat(
         self,
-        messages: List[Dict[str, str]],
-        model: str = "gpt-4.1-mini"
+        messages: List[Dict[str, str]]
     ) -> Dict[str, Any]:
 
         if not self.client:
@@ -27,21 +31,18 @@ class OpenAIHandler:
             }
 
         try:
-
             response = await self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0.7
+                model=self.model,
+                messages=messages
             )
 
             return {
-                "content": response.choices[0].message.content
+                "content": response.choices[0].message.content,
+                "model": self.model
             }
 
         except Exception as e:
-
-            logger.error(f"OpenAI Error: {e}")
-
+            logger.exception(f"OpenAI API error: {e}")
             return {
                 "error": str(e)
             }
