@@ -63,7 +63,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/balance\n"
         "/premium\n"
         "/models"
-    )async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    )
+
+async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = db.get_user(update.effective_user.id)
 
