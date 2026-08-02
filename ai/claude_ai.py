@@ -1,5 +1,5 @@
-import httpx
-from typing import Dict, Any, List
+from anthropic import AsyncAnthropic
+from typing import List, Dict, Any
 
 from config import Config
 from logger.logger import logger
@@ -8,61 +8,73 @@ from logger.logger import logger
 class ClaudeHandler:
 
     def __init__(self):
+
         self.api_key = Config.CLAUDE_API_KEY
+
+        if self.api_key:
+
+            self.client = AsyncAnthropic(
+                api_key=self.api_key
+            )
+
+        else:
+
+            self.client = None
+
+            logger.warning(
+                "Claude API key not found"
+            )
 
     async def chat(
         self,
-        messages: List[Dict[str, str]]
+        messages: List[Dict[str, str]],
+        model: str = "claude-3-5-sonnet-latest"
     ) -> Dict[str, Any]:
 
-        if not self.api_key:
+        if not self.client:
+
             return {
                 "error": "Claude API key not configured"
             }
 
         try:
 
-            prompt = "\n".join(
-                msg["content"] for msg in messages
+            system = ""
+            user_messages = []
+
+            for msg in messages:
+
+                if msg["role"] == "system":
+                    system = msg["content"]
+
+                else:
+
+                    user_messages.append(msg)
+
+            response = await self.client.messages.create(
+
+                model=model,
+
+                system=system,
+
+                max_tokens=2048,
+
+                messages=user_messages
+
             )
 
-            headers = {
-                "x-api-key": self.api_key,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            }
-
-            data = {
-                "model": "claude-3-5-sonnet-latest",
-                "max_tokens": 2048,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
-            }
-
-            async with httpx.AsyncClient(timeout=60) as client:
-
-                r = await client.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers=headers,
-                    json=data,
-                )
-
-            r.raise_for_status()
-
-            result = r.json()
-
             return {
-                "content": result["content"][0]["text"]
+
+                "content": response.content[0].text
+
             }
 
         except Exception as e:
 
-            logger.exception(e)
+            logger.error(f"Claude Error: {e}")
 
             return {
+
                 "error": str(e)
+
             }
