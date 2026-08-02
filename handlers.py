@@ -110,7 +110,8 @@ Use /chat to start chatting.
             text,
             parse_mode=ParseMode.MARKDOWN
         )
-      async def chat_command(
+
+    async def chat_command(
         self,
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
@@ -145,7 +146,6 @@ Use /chat to start chatting.
         )
 
         return CHAT
-
 
     async def chat_message(
         self,
@@ -221,7 +221,41 @@ Use /chat to start chatting.
 
                 await update.message.reply_text(
                     f"❌ {response['error']}"
-          async def model_command(
+                )
+
+            else:
+
+                await update.message.reply_text(
+                    response["response"]
+                )
+
+                self.db.save_history(
+                    user_id,
+                    "user",
+                    prompt,
+                    model
+                )
+
+                self.db.save_history(
+                    user_id,
+                    "assistant",
+                    response["response"],
+                    model
+                )
+
+                self.db.update_user_usage(user_id)
+
+        except Exception as e:
+
+            logger.error(f"Chat error: {e}")
+
+            await update.message.reply_text(
+                "❌ Something went wrong."
+            )
+
+        return ConversationHandler.END
+
+    async def model_command(
         self,
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
@@ -231,7 +265,6 @@ Use /chat to start chatting.
             "🤖 Select AI Model",
             reply_markup=Keyboards.model_selection()
         )
-
 
     async def profile_command(
         self,
@@ -262,7 +295,6 @@ Use /chat to start chatting.
 
         await update.message.reply_text(text)
 
-
     async def balance_command(
         self,
         update: Update,
@@ -276,7 +308,6 @@ Use /chat to start chatting.
         await update.message.reply_text(
             f"💰 Balance: ${balance}"
         )
-
 
     async def premium_command(
         self,
@@ -305,7 +336,6 @@ Benefits
             text,
             reply_markup=Keyboards.premium_plans()
         )
-
 
     async def history_command(
         self,
@@ -338,7 +368,6 @@ Benefits
             text,
             reply_markup=Keyboards.history_menu()
         )
-
 
     async def referral_command(
         self,
@@ -375,6 +404,7 @@ Invite Link
 """
 
         await update.message.reply_text(text)
+
     async def handle_callbacks(
         self,
         update: Update,
@@ -510,7 +540,6 @@ Invite Link
         await query.edit_message_text(
             "Unknown action."
         )
-
 
     async def unknown(
         self,
