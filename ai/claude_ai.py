@@ -1,5 +1,7 @@
+import asyncio
+from typing import Dict, Any, List
+
 from anthropic import AsyncAnthropic
-from typing import List, Dict, Any
 
 from config import Config
 from logger.logger import logger
@@ -8,73 +10,54 @@ from logger.logger import logger
 class ClaudeHandler:
 
     def __init__(self):
-
         self.api_key = Config.CLAUDE_API_KEY
 
         if self.api_key:
-
-            self.client = AsyncAnthropic(
-                api_key=self.api_key
-            )
-
+            self.client = AsyncAnthropic(api_key=self.api_key)
+            self.model = "claude-3-haiku-20240307"
+            logger.info("Claude handler initialized successfully")
         else:
-
             self.client = None
-
-            logger.warning(
-                "Claude API key not found"
-            )
+            logger.warning("Claude API key not configured")
 
     async def chat(
         self,
-        messages: List[Dict[str, str]],
-        model: str = "claude-3-5-sonnet-latest"
+        messages: List[Dict[str, str]]
     ) -> Dict[str, Any]:
 
         if not self.client:
-
             return {
                 "error": "Claude API key not configured"
             }
 
         try:
-
-            system = ""
-            user_messages = []
+            # Claude এর জন্য মেসেজ ফরম্যাট আলাদা
+            system_message = None
+            formatted_messages = []
 
             for msg in messages:
-
-                if msg["role"] == "system":
-                    system = msg["content"]
-
+                if msg.get("role") == "system":
+                    system_message = msg.get("content")
                 else:
-
-                    user_messages.append(msg)
+                    formatted_messages.append({
+                        "role": msg.get("role", "user"),
+                        "content": msg.get("content", "")
+                    })
 
             response = await self.client.messages.create(
-
-                model=model,
-
-                system=system,
-
-                max_tokens=2048,
-
-                messages=user_messages
-
+                model=self.model,
+                system=system_message,
+                messages=formatted_messages,
+                max_tokens=1024
             )
 
             return {
-
-                "content": response.content[0].text
-
+                "content": response.content[0].text,
+                "model": self.model
             }
 
         except Exception as e:
-
-            logger.error(f"Claude Error: {e}")
-
+            logger.exception(f"Claude API error: {e}")
             return {
-
                 "error": str(e)
-
             }
