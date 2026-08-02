@@ -7,20 +7,20 @@ class Keyboards:
     def main_menu():
         keyboard = [
             [
-                InlineKeyboardButton("💬 Chat", callback_data="menu_chat"),
-                InlineKeyboardButton("🤖 Models", callback_data="menu_models")
+                InlineKeyboardButton("🤖 Chat", callback_data="menu_chat"),
+                InlineKeyboardButton("🎨 Image", callback_data="menu_image")
             ],
             [
-                InlineKeyboardButton("👤 Profile", callback_data="menu_profile"),
+                InlineKeyboardButton("🧠 Model", callback_data="menu_model"),
+                InlineKeyboardButton("👤 Profile", callback_data="menu_profile")
+            ],
+            [
+                InlineKeyboardButton("💎 Premium", callback_data="menu_premium"),
                 InlineKeyboardButton("💰 Balance", callback_data="menu_balance")
             ],
             [
-                InlineKeyboardButton("⭐ Premium", callback_data="menu_premium"),
+                InlineKeyboardButton("📜 History", callback_data="history_view"),
                 InlineKeyboardButton("⚙️ Settings", callback_data="menu_settings")
-            ],
-            [
-                InlineKeyboardButton("📚 History", callback_data="menu_history"),
-                InlineKeyboardButton("🎁 Referral", callback_data="menu_referral")
             ]
         ]
         return InlineKeyboardMarkup(keyboard)
@@ -28,47 +28,61 @@ class Keyboards:
     @staticmethod
     def model_selection():
         keyboard = [
-            [InlineKeyboardButton("🧠 Gemini", callback_data="model_gemini")],
-            [InlineKeyboardButton("🤖 ChatGPT", callback_data="model_chatgpt")],
-            [InlineKeyboardButton("🟣 Claude", callback_data="model_claude")],
-            [InlineKeyboardButton("🔵 DeepSeek", callback_data="model_deepseek")],
-            [InlineKeyboardButton("❌ Grok", callback_data="model_grok")],
-            [InlineKeyboardButton("⬅ Back", callback_data="back_main")]
+            [
+                InlineKeyboardButton("🤖 ChatGPT", callback_data="model_chatgpt"),
+                InlineKeyboardButton("✨ Gemini", callback_data="model_gemini")
+            ],
+            [
+                InlineKeyboardButton("🧠 Claude", callback_data="model_claude"),
+                InlineKeyboardButton("⚡ Grok", callback_data="model_grok")
+            ],
+            [
+                InlineKeyboardButton("🚀 DeepSeek", callback_data="model_deepseek")
+            ],
+            [
+                InlineKeyboardButton("⬅️ Back", callback_data="back_main")
+            ]
         ]
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
     def premium_plans():
         keyboard = [
-            [InlineKeyboardButton("⭐ Buy Premium", callback_data="premium_buy")],
-            [InlineKeyboardButton("⬅ Back", callback_data="back_main")]
+            [
+                InlineKeyboardButton("💎 Pro", callback_data="premium_pro")
+            ],
+            [
+                InlineKeyboardButton("🏆 Enterprise", callback_data="premium_enterprise")
+            ],
+            [
+                InlineKeyboardButton("⬅️ Back", callback_data="back_main")
+            ]
         ]
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
     def settings_menu():
         keyboard = [
-            [InlineKeyboardButton("🌐 Language", callback_data="settings_language")],
-            [InlineKeyboardButton("🎨 Theme", callback_data="settings_theme")],
-            [InlineKeyboardButton("⬅ Back", callback_data="back_main")]
+            [
+                InlineKeyboardButton("🌐 Language", callback_data="settings_language")
+            ],
+            [
+                InlineKeyboardButton("🎨 Theme", callback_data="settings_theme")
+            ],
+            [
+                InlineKeyboardButton("⬅️ Back", callback_data="back_main")
+            ]
         ]
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
     def history_menu():
         keyboard = [
-            [InlineKeyboardButton("🗑 Delete History", callback_data="history_delete")],
-            [InlineKeyboardButton("⬅ Back", callback_data="back_main")]
-        ]
-        return InlineKeyboardMarkup(keyboard)
-
-    @staticmethod
-    def admin_menu():
-        keyboard = [
-            [InlineKeyboardButton("👥 Users", callback_data="admin_users")],
-            [InlineKeyboardButton("⭐ Premium", callback_data="admin_premium")],
-            [InlineKeyboardButton("🚫 Ban User", callback_data="admin_ban")],
-            [InlineKeyboardButton("📊 Statistics", callback_data="admin_stats")],
-            [InlineKeyboardButton("⬅ Back", callback_data="back_main")]
+            [
+                InlineKeyboardButton("🗑 Delete History", callback_data="history_delete")
+            ],
+            [
+                InlineKeyboardButton("⬅️ Back", callback_data="back_main")
+            ]
         ]
         return InlineKeyboardMarkup(keyboard)
