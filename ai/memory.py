@@ -1,66 +1,51 @@
-from typing import List, Dict
+from database import Database
 
 
 class ConversationMemory:
 
-    def __init__(self, db):
+    def __init__(self, db: Database):
         self.db = db
 
-    def add_message(self, user_id, session_id, role, content):
-        try:
-            self.db.save_memory(
-                user_id,
-                session_id,
-                role,
-                content
-            )
-        except Exception:
-            pass
+    def add_message(
+        self,
+        user_id: int,
+        role: str,
+        message: str
+    ):
+
+        self.db.save_history(
+            user_id,
+            role,
+            message
+        )
 
     def get_context(
         self,
-        user_id,
-        session_id,
-        limit=10
+        user_id: int,
+        limit: int = 10
     ):
 
-        try:
-            return self.db.get_memory(
-                user_id,
-                session_id,
-                limit
-            )
-        except Exception:
-            return []
+        history = self.db.get_history(
+            user_id,
+            limit
+        )
 
-    def clear_history(
-        self,
-        user_id,
-        session_id
-    ):
+        messages = []
 
-        try:
-            self.db.clear_memory(
-                user_id,
-                session_id
-            )
-        except Exception:
-            pass
+        for role, message in history:
 
-    def format_messages(
-        self,
-        messages: List[Dict]
-    ):
-
-        formatted = []
-
-        for msg in messages:
-
-            formatted.append(
+            messages.append(
                 {
-                    "role": msg["role"],
-                    "content": msg["content"]
+                    "role": role,
+                    "content": message
                 }
             )
 
-        return formatted
+        return messages
+
+    def clear(
+        self,
+        user_id: int
+    ):
+
+        self.db.clear_history(user_id)
