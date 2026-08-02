@@ -387,19 +387,40 @@ class Database:
         conn.commit()
         conn.close()
 
-    def get_history(self, user_id, limit=20):
+def get_history(self, user_id, limit=20):
 
-        conn = self.connect()
-        cursor = conn.cursor()
+    conn = self.connect()
+    cursor = conn.cursor()
 
-        cursor.execute("""
-        SELECT role,message
-        FROM history
-        WHERE user_id=?
-        ORDER BY id DESC
-        LIMIT ?
-        """,
-          # ==========================
+    cursor.execute("""
+    SELECT role, message
+    FROM history
+    WHERE user_id=?
+    ORDER BY id DESC
+    LIMIT ?
+    """, (user_id, limit))
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return [(row["role"], row["message"]) for row in rows[::-1]]
+
+
+def clear_history(self, user_id):
+
+    conn = self.connect()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM history WHERE user_id=?",
+        (user_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    # =====================
     # REFERRAL
     # ==========================
 
