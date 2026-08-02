@@ -1,5 +1,4 @@
-import asyncio
-
+import logging
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -12,7 +11,7 @@ from telegram.ext import (
 
 from config import Config
 from database import Database
-from handlers import AIHandler
+from handlers import MainHandlers  # ✅ পরিবর্তন: AIHandler → MainHandlers
 from admin import AdminHandler
 from keyboards import Keyboards
 from logger.logger import logger
@@ -20,13 +19,12 @@ from errors.error_handler import ErrorHandler
 
 
 db = Database()
-ai = AIHandler()
+ai = MainHandlers()  # ✅ পরিবর্তন: AIHandler → MainHandlers
 admin = AdminHandler()
 error_handler = ErrorHandler()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     user = update.effective_user
 
     db.register_user(
@@ -55,18 +53,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     await update.message.reply_text(
-        "/start\n"
-        "/help\n"
-        "/profile\n"
-        "/balance\n"
-        "/premium\n"
-        "/models"
+        "/start - Start the bot\n"
+        "/help - Show this help\n"
+        "/profile - View your profile\n"
+        "/balance - Check your balance\n"
+        "/premium - Premium plans\n"
+        "/models - Choose AI model"
     )
 
-async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
+async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = db.get_user(update.effective_user.id)
 
     if not user:
@@ -86,7 +83,6 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     amount = db.get_balance(update.effective_user.id)
 
     await update.message.reply_text(
@@ -95,7 +91,6 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     await update.message.reply_text(
         "💎 Premium Plans",
         reply_markup=Keyboards.premium_plans()
@@ -103,7 +98,6 @@ async def premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def models(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     await update.message.reply_text(
         "Choose AI Model",
         reply_markup=Keyboards.model_selection()
@@ -111,7 +105,6 @@ async def models(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     text = update.message.text
 
     if text.startswith("/"):
@@ -119,14 +112,15 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.chat.send_action("typing")
 
-    reply = await ai.chat(
-        update.effective_user.id,
-        text
-    )
+    # ✅ সঠিকভাবে chat_message কল করা
+    reply = await ai.chat_message(update, context)
 
-    await update.message.reply_text(reply)
+    # যদি reply থাকে তাহলে পাঠানো হবে, নাহলে chat_message ইতিমধ্যে reply পাঠিয়েছে
+    if reply and isinstance(reply, str):
+        await update.message.reply_text(reply)
+
+
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     query = update.callback_query
     await query.answer()
 
@@ -137,7 +131,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ==========================
 
     if data == "back_main":
-
         await query.edit_message_text(
             "🏠 Main Menu",
             reply_markup=Keyboards.main_menu()
@@ -149,7 +142,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ==========================
 
     if data.startswith("model_"):
-
         model = data.replace("model_", "")
 
         db.update_settings(
@@ -161,7 +153,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"✅ AI Model changed to\n\n{model.upper()}",
             reply_markup=Keyboards.model_selection()
         )
-
         return
 
     # ==========================
@@ -169,14 +160,12 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ==========================
 
     if data == "history_delete":
-
         db.clear_history(query.from_user.id)
 
         await query.edit_message_text(
             "🗑 Chat history deleted.",
             reply_markup=Keyboards.history_menu()
         )
-
         return
 
     # ==========================
@@ -184,19 +173,15 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ==========================
 
     if data == "premium_pro":
-
         await query.edit_message_text(
             "💎 Pro Plan Selected\n\nProceed to payment."
         )
-
         return
 
     if data == "premium_enterprise":
-
         await query.edit_message_text(
             "🏆 Enterprise Plan Selected\n\nProceed to payment."
         )
-
         return
 
     # ==========================
@@ -204,33 +189,31 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ==========================
 
     if data == "menu_settings":
-
         await query.edit_message_text(
             "⚙ Settings",
             reply_markup=Keyboards.settings_menu()
         )
-
         return
 
     if data == "settings_language":
-
         await query.answer(
             "Coming Soon!",
             show_alert=True
         )
-
         return
 
     if data == "settings_theme":
-
         await query.answer(
             "Coming Soon!",
             show_alert=True
         )
-
         return
-def main():
 
+    # যদি কোনো ম্যাচ না পায়
+    await query.edit_message_text("❌ Unknown action.")
+
+
+def main():
     logger.info("Starting AI Telegram Bot...")
 
     application = Application.builder().token(
@@ -238,31 +221,14 @@ def main():
     ).build()
 
     # Commands
-    application.add_handler(
-        CommandHandler("start", start)
-    )
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("profile", profile))
+    application.add_handler(CommandHandler("balance", balance))
+    application.add_handler(CommandHandler("premium", premium))
+    application.add_handler(CommandHandler("models", models))
 
-    application.add_handler(
-        CommandHandler("help", help_command)
-    )
-
-    application.add_handler(
-        CommandHandler("profile", profile)
-    )
-
-    application.add_handler(
-        CommandHandler("balance", balance)
-    )
-
-    application.add_handler(
-        CommandHandler("premium", premium)
-    )
-
-    application.add_handler(
-        CommandHandler("models", models)
-    )
-
-    # Chat
+    # Chat - সব টেক্সট মেসেজ হ্যান্ডেল করে (কমান্ড ছাড়া)
     application.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
@@ -271,20 +237,14 @@ def main():
     )
 
     # Buttons
-    application.add_handler(
-        CallbackQueryHandler(button_callback)
-    )
+    application.add_handler(CallbackQueryHandler(button_callback))
 
     # Error Handler
-    application.add_error_handler(
-        error_handler.handle_error
-    )
+    application.add_error_handler(error_handler.handle_error)
 
     logger.info("Bot Started Successfully.")
 
-    application.run_polling(
-        allowed_updates=Update.ALL_TYPES
-    )
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":
